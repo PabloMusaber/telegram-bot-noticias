@@ -1,6 +1,9 @@
-from scraping.secciones_infobae import *
 import requests
 from bs4 import BeautifulSoup
+
+secciones = [["Últimas Noticias","https://www.infobae.com/ultimas-noticias/"],
+            ["Tecno", "https://www.infobae.com/tecno/"],
+            ["Economía", "https://www.infobae.com/economia/"]]
 
 def scrapper_soup(url):
     """Obtiene la página y la convierte en un objeto soup."""  
@@ -21,23 +24,25 @@ def scrapper_noticias(soup):
     except:
         None
     i=0
-    noticiasDic = {}
+    noticias = []
     for noticia in lista_noticias:
         try:
             titulo = noticia.h2.text
             url = 'https://www.infobae.com'+noticia['href']
-            diccio = {"noticia"+str(i):{"titulo":titulo,"url":url}}
-            noticiasDic.update(diccio)
+            noticias.append([titulo, url])
             i=i+1
         except:
             continue
-    return(noticiasDic)
-
+    return(noticias)
     
 def infobae(seccion):
-    return scrapper_soup(seccionesDic[str(seccion)]['url'])
+    if seccion == 0:
+        numero = secciones[0][1]
+    elif seccion == 1:
+        numero = secciones[1][1]
+    else:
+        numero = secciones[2][1]
+    return scrapper_soup(numero)
 
 if __name__ == '__main__':
     infobae(0)
-    
-

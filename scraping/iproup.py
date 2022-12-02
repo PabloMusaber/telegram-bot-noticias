@@ -15,42 +15,20 @@ def scrapper_soup(url):
 def scrapper_noticias(soup):
     """Busca las noticias de iProUP a partir del objeto soup."""
     try:
-        noticias = soup.find('div', attrs={'class':'notahomebombasimple notahomebombasimpleblanca'})
-        lista_noticias = noticias.find_all('a')
+        noticias_soup = soup.find('div', attrs={'class':'notahomebombasimple notahomebombasimpleblanca'})
+        lista_noticias = noticias_soup.find_all('a')
     except:
         None
-    titulos = []
-    url = []
+    noticias = []
     for noticia in lista_noticias:
         try:
-            titulos.append(noticia.img['alt'])
-            url.append('https://www.iproup.com'+noticia['href'])
+            titulo = noticia.img['alt']
+            url = 'https://www.iproup.com'+noticia['href']
+            if [titulo, url] not in noticias:
+                noticias.append([titulo, url])
         except:
             continue
-
-    #Selecciona los elementos de la lista que realmente son noticias
-    titulosA = []
-    urlA = []
-    for i in range(len(titulos)):
-        if i % 2 == 0:
-            try:
-                titulosA.append(titulos[i])
-                urlA.append(url[i])
-            except:
-                continue
-
-    #Arma el diccionario con las noticias
-    noticiasDic = {}
-    for i in range(len(titulosA)):
-        try:
-            titulo = titulosA[i]
-            url = urlA[i]
-            diccio = {"noticia"+str(i):{"titulo":titulo,"url":url}}
-            noticiasDic.update(diccio)
-            i=i+1
-        except:
-            continue
-    return(noticiasDic)
+    return(noticias)
 
 def iproup():
     return scrapper_soup('https://www.iproup.com/')
