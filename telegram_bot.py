@@ -2,11 +2,23 @@ from config import *
 from scraping.infobae import *
 from scraping.xataka import *
 from scraping.iproup import *
-import telebot
 from telebot.types import InlineKeyboardMarkup
 from telebot.types import InlineKeyboardButton
+from flask import Flask, request
+from pyngrok import ngrok, conf
+from waitress import serve
+import telebot
+import time
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
+web_server = Flask(__name__)
+
+@web_server.route('/', methods=['POST'])
+def webhook():
+    if request.headers.get("content-type") == "application/json":
+        update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
+        bot.process_new_updates([update])
+        return "OK", 200
 
 @bot.message_handler(commands=["start", "noticias"])
 def cmd_start(message):
@@ -122,7 +134,6 @@ def text_messages(message):
     else:
         bot.send_message(message.chat.id, "Ingrese un comando. Utilice /help para obtener infomación de ayuda.")
 
-
 ###### MAIN ######
 if __name__ == '__main__':
     bot.set_my_commands([
@@ -135,4 +146,13 @@ if __name__ == '__main__':
         telebot.types.BotCommand("/iproup","Muestra las noticias del sitio de iProUP")
     ])
     print ("Corriendo...") 
-    bot.infinity_polling()
+    conf.get_default().config_path = "./config_ngrok"
+    conf.get_default().region = "sa"
+    ngrok.set_auth_token(NGROK_TOKEN)
+    ngrok_tunel = ngrok.connect(5000, bind_tls=True)
+    ngrok_url = ngrok_tunel.public_url
+    print("URL NGROK: ", ngrok_url)
+    bot.remove_webhook()
+    time.sleep(1)
+    bot.set_webhook(url=ngrok_url)
+    serve(web_server, host="0.0.0.0", port=5000)

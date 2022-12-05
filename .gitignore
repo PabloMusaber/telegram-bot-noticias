@@ -1,3 +1,4 @@
 config.py
+config_ngrok
 __pycache__/
 scraping/__pycache__/
